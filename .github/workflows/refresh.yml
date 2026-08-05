@@ -1,34 +1,53 @@
-name: Refresh live forecast
+name: Refresh heat-risk forecast
 
 on:
   schedule:
-    - cron: "17 4 * * *"
+    # Every day at 05:15 UTC
+    # 07:15 Berlin summer time / 06:15 Berlin winter time
+    - cron: "15 5 * * *"
+
+  # Allows manual execution from the GitHub Actions page
   workflow_dispatch:
 
 permissions:
   contents: write
 
-concurrency:
-  group: forecast-refresh
-  cancel-in-progress: true
-
 jobs:
   refresh:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-      - name: Install
-        run: python -m pip install .
-      - name: Refresh forecast and scores
-        run: python scripts/refresh_forecast.py --mode live
-      - name: Commit refreshed artifacts
+
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Refresh live forecast
+        run: |
+          python scripts/refresh_forecast.py --mode live
+
+      - name: Commit updated forecast files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/processed/latest_risk.csv data/processed/forecast_daily.csv data/processed/data_health.json
-          git diff --cached --quiet || git commit -m "chore(data): refresh heat-risk forecast"
-          git push
+
+          git add \
+            data/processed/forecast_daily.csv \
+            data/processed/latest_risk.csv \
+            data/processed/data_health.json
+
+          if git diff --cached --quiet; then
+            echo "No forecast changes to commit."
+          else
+            git commit -m "chore: refresh daily heat-risk forecast"
+            git push
+          fi
