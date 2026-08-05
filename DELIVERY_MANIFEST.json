@@ -1,0 +1,31 @@
+{
+  "project": "urban-heat-risk-intelligence",
+  "version": "0.1.0",
+  "validation": {
+    "unit_tests_passed": 8,
+    "compile_check": "passed",
+    "profile_validation": "passed",
+    "hourly_validation": true,
+    "daily_validation": true
+  },
+  "models": [
+    "Isolation Forest",
+    "Robust Covariance"
+  ],
+  "ensemble_metrics": {
+    "roc_auc": 0.9601733243440643,
+    "average_precision": 0.5670745498722294,
+    "precision_at_top_3pct": 0.6060606060606061
+  },
+  "demo_risk_levels": {
+    "Moderate": 34,
+    "High": 33,
+    "Very High": 13,
+    "Low": 3,
+    "Extreme": 1
+  },
+  "limitations": [
+    "Evaluation uses a climate-extreme proxy derived from historical 98th percentiles; it is not a health-outcome label.",
+    "Bundled district vulnerability values are demo seed data."
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "history_start": "2018-01-01",
+  "history_end": "2025-07-31",
+  "forecast_days": 7,
+  "timezone": "Europe/Berlin",
+  "contamination": 0.03,
+  "random_state": 42,
+  "risk_weights": {
+    "hazard": 0.55,
+    "exposure": 0.20,
+    "vulnerability": 0.25
+  }
+}

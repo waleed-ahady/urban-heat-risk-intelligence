@@ -1,0 +1,57 @@
+{
+  "project": "Urban Heat Risk Intelligence",
+  "mode": "demo",
+  "trained_at_utc": "2026-08-04T20:45:56.158626+00:00",
+  "model_type": "unsupervised anomaly detection",
+  "models": [
+    "Isolation Forest",
+    "Robust Covariance"
+  ],
+  "evaluation": {
+    "rows": 4392,
+    "positive_rate": 0.04644808743169399,
+    "isolation_forest": {
+      "roc_auc": 0.9571967994456616,
+      "average_precision": 0.5432264444315255,
+      "precision_at_top_3pct": 0.5606060606060606
+    },
+    "robust_covariance": {
+      "roc_auc": 0.9428122132329533,
+      "average_precision": 0.4718453007163985,
+      "precision_at_top_3pct": 0.49242424242424243
+    },
+    "ensemble": {
+      "roc_auc": 0.9601733243440643,
+      "average_precision": 0.5670745498722294,
+      "precision_at_top_3pct": 0.6060606060606061
+    },
+    "model_score_correlation": 0.8744594254961412
+  },
+  "training_rows_total": 33228,
+  "training_rows_model_fit": 18000,
+  "history_start": "2018-01-01 00:00:00",
+  "history_end": "2025-07-31 00:00:00",
+  "proxy_label_warning": "Evaluation uses a climate-extreme proxy derived from historical 98th percentiles; it is not a health-outcome label.",
+  "hourly_data_health": {
+    "is_valid": true,
+    "row_count": 797472,
+    "district_count": 12,
+    "missing_columns": [],
+    "duplicate_rows": 0,
+    "missing_fraction": 0.0,
+    "range_violations": {
+      "temperature_2m": 0,
+      "relative_humidity_2m": 0,
+      "wind_speed_10m": 0,
+      "precipitation": 0
+    }
+  },
+  "daily_data_health": {
+    "is_valid": true,
+    "row_count": 33228,
+    "missing_columns": [],
+    "coverage_failures": 0,
+    "duplicate_rows": 0,
+    "missing_fraction": 0.0
+  }
+}
