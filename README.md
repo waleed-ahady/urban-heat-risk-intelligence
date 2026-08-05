@@ -2,8 +2,6 @@
 
 An end-to-end urban heat decision-support product for Berlin's 12 districts. It retrieves weather data, validates and aggregates it, derives local-climate features, compares two anomaly-detection models, and combines forecast hazard with population exposure and district vulnerability to produce an explainable 0–100 risk score in Streamlit.
 
-> **Important:** This is a portfolio and research prototype. It is not an official warning system, a medical device, or a substitute for government emergency guidance.
-
 ## What the product does
 
 ```text
@@ -38,8 +36,6 @@ The weather provider supplies the forecast. This repository adds the decision la
 - What changes under a planning scenario?
 
 ## Modeling strategy
-
-This project deliberately avoids fabricating health-outcome labels.
 
 ### Model 1: Isolation Forest
 
@@ -125,8 +121,6 @@ Open-Meteo provides historical reanalysis and forecast APIs without requiring an
 
 ## District vulnerability data
 
-`data/reference/district_profiles.csv` is an **offline demo seed**, with an explicit `source_quality` field. A credible real deployment must rebuild these fields from versioned public sources:
-
 - Population and age: Amt für Statistik Berlin-Brandenburg / Berlin Open Data
 - Population density, green volume, land use, and impervious surface: Berlin Environmental Atlas WFS or downloads
 
@@ -207,30 +201,6 @@ The repository uses a final-year time holdout. Because no hospital or emergency-
 
 This benchmark is useful for engineering validation, but it does **not** establish that the system predicts illness, mortality, or emergency demand. The exact generated metrics are stored in `artifacts/model_metrics.json` and displayed in the dashboard.
 
-## Streamlit Community Cloud deployment
-
-1. Push this repository to GitHub.
-2. Confirm generated artifacts are committed, or run the live training pipeline and commit them.
-3. In Streamlit Community Cloud, select the repository and set the entry point to `app/Home.py`.
-4. Deploy.
-
-Community Cloud installs dependencies from `pyproject.toml` and updates the application after repository changes.
-
-## Scheduled refresh
-
-`.github/workflows/refresh.yml` runs daily and commits refreshed forecast artifacts. Before enabling it:
-
-- Train and commit a **live** model bundle.
-- Replace demo vulnerability profiles.
-- Confirm Open-Meteo usage and attribution requirements.
-- Protect the main branch appropriately or change the workflow to publish artifacts elsewhere.
-
-GitHub can disable scheduled workflows in public repositories after extended inactivity. Keep a manual `workflow_dispatch` option, which is already included.
-
-## Responsible use
-
-Do not use this prototype to issue official public warnings, make clinical decisions, or deprioritize communities. The risk score is a relative prioritization mechanism, not a probability of harm. Validate all weights with domain experts, conduct subgroup and geographic sensitivity analyses, and replace proxy outcomes with legitimate operational targets when available.
-
 ## Roadmap
 
 - Aggregate official Berlin LOR or district vulnerability datasets automatically.
@@ -239,7 +209,3 @@ Do not use this prototype to issue official public warnings, make clinical decis
 - Add uncertainty from ensemble weather forecasts.
 - Integrate operational labels such as emergency calls or grid load where permitted.
 - Add model and data drift history rather than only latest-run health checks.
-
-## License
-
-Code is MIT licensed. Upstream datasets retain their own licences and attribution requirements.
