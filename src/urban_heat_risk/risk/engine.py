@@ -15,7 +15,9 @@ def calculate_risk(
     if not np.isclose(sum(weights.values()), 1.0):
         raise ValueError("Risk weights must sum to 1.0")
 
-    frame = forecast_scored.merge(district_profiles, on="district", how="left", validate="many_to_one")
+    frame = forecast_scored.merge(
+        district_profiles, on="district", how="left", validate="many_to_one"
+    )
     profile_columns = [
         "population_density_per_km2",
         "share_age_65_plus_pct",
@@ -59,9 +61,7 @@ def calculate_risk(
 
     frame["hazard_contribution"] = weights["hazard"] * frame["hazard_score"]
     frame["exposure_contribution"] = weights["exposure"] * frame["exposure_score"]
-    frame["vulnerability_contribution"] = (
-        weights["vulnerability"] * frame["vulnerability_score"]
-    )
+    frame["vulnerability_contribution"] = weights["vulnerability"] * frame["vulnerability_score"]
     frame["risk_score"] = (
         frame["hazard_contribution"]
         + frame["exposure_contribution"]

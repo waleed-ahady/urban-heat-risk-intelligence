@@ -55,9 +55,7 @@ def hourly_to_daily(hourly: pd.DataFrame) -> pd.DataFrame:
         .sort_values(["district", "date"])
         .reset_index(drop=True)
     )
-    daily["night_min_temperature"] = daily["night_min_temperature"].fillna(
-        daily["min_temperature"]
-    )
+    daily["night_min_temperature"] = daily["night_min_temperature"].fillna(daily["min_temperature"])
     daily["hot_day"] = daily["max_temperature"] >= 30
     daily["heatwave_streak"] = (
         daily.groupby("district", group_keys=False)["hot_day"]
@@ -82,8 +80,12 @@ class Climatology:
     table: pd.DataFrame
 
     def apply(self, daily: pd.DataFrame) -> pd.DataFrame:
-        frame = daily.merge(self.table, on=["district", "month"], how="left", validate="many_to_one")
-        missing_baseline = frame[[f"{metric}_median" for metric in CLIMATOLOGY_METRICS]].isna().any(axis=1)
+        frame = daily.merge(
+            self.table, on=["district", "month"], how="left", validate="many_to_one"
+        )
+        missing_baseline = (
+            frame[[f"{metric}_median" for metric in CLIMATOLOGY_METRICS]].isna().any(axis=1)
+        )
         if missing_baseline.any():
             districts = sorted(frame.loc[missing_baseline, "district"].unique())
             raise ValueError(f"No climatology is available for districts: {districts}")

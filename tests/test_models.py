@@ -9,7 +9,9 @@ from urban_heat_risk.models.anomaly import evaluate_bundle, fit_model_bundle
 
 def _feature_frame(rows: int = 600, seed: int = 4) -> pd.DataFrame:
     rng = np.random.default_rng(seed)
-    frame = pd.DataFrame(rng.normal(0, 1, size=(rows, len(ANOMALY_FEATURES))), columns=ANOMALY_FEATURES)
+    frame = pd.DataFrame(
+        rng.normal(0, 1, size=(rows, len(ANOMALY_FEATURES))), columns=ANOMALY_FEATURES
+    )
     frame["proxy_extreme"] = 0
     extreme_indices = frame.index[-20:]
     frame.loc[extreme_indices, ANOMALY_FEATURES[:3]] += 7

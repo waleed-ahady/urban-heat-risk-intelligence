@@ -72,9 +72,7 @@ class OpenMeteoClient:
                 frame = pd.read_csv(cache_file, parse_dates=["timestamp"])
             else:
                 payload = self._get_json(self.archive_url, params)
-                frame = self._hourly_payload_to_frame(
-                    payload, str(row.district), "observed"
-                )
+                frame = self._hourly_payload_to_frame(payload, str(row.district), "observed")
                 frame.to_csv(cache_file, index=False)
 
                 # Avoid sending the next large archive request immediately.
@@ -104,11 +102,7 @@ class OpenMeteoClient:
                 "past_days": past_days,
             }
             payload = self._get_json(self.forecast_url, params)
-            frames.append(
-                self._hourly_payload_to_frame(
-                    payload, str(row.district), "forecast"
-                )
-            )
+            frames.append(self._hourly_payload_to_frame(payload, str(row.district), "forecast"))
             if index < len(districts) - 1:
                 time.sleep(1.0)
 
@@ -231,9 +225,7 @@ def validate_hourly_weather(frame: pd.DataFrame) -> dict[str, object]:
         missing_fraction = float(frame[list(required)].isna().mean().mean())
         range_violations = {
             "temperature_2m": int((~frame["temperature_2m"].between(-60, 60)).sum()),
-            "relative_humidity_2m": int(
-                (~frame["relative_humidity_2m"].between(0, 100)).sum()
-            ),
+            "relative_humidity_2m": int((~frame["relative_humidity_2m"].between(0, 100)).sum()),
             "wind_speed_10m": int((frame["wind_speed_10m"] < 0).sum()),
             "precipitation": int((frame["precipitation"] < 0).sum()),
         }

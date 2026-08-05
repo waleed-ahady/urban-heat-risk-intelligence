@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from typing import Any
 
 import pandas as pd
@@ -56,8 +55,7 @@ def _validation_issues(layer: dict[str, Any]) -> list[str]:
     bad_ranges = {key: value for key, value in violations.items() if int(value or 0) > 0}
     if bad_ranges:
         issues.append(
-            "range violations: "
-            + ", ".join(f"{key}={value}" for key, value in bad_ranges.items())
+            "range violations: " + ", ".join(f"{key}={value}" for key, value in bad_ranges.items())
         )
     return issues
 
@@ -134,9 +132,13 @@ status_text = f"{_status_icon(status)} {_status_label(status)}"
 if status == "healthy":
     st.success(f"Overall status: **{status_text}** — all monitored checks are within limits.")
 elif status == "warning":
-    st.warning(f"Overall status: **{status_text}** — outputs are usable, but review the warnings below.")
+    st.warning(
+        f"Overall status: **{status_text}** — outputs are usable, but review the warnings below."
+    )
 else:
-    st.error(f"Overall status: **{status_text}** — do not rely on the current dashboard output until resolved.")
+    st.error(
+        f"Overall status: **{status_text}** — do not rely on the current dashboard output until resolved."
+    )
 
 kpi_cols = st.columns(5)
 kpi_cols[0].metric("Overall status", _status_label(status))
@@ -182,11 +184,15 @@ with left:
     freshness_rows = [
         {
             "Metric": "Generated at",
-            "Value": generated_at.strftime("%Y-%m-%d %H:%M UTC") if generated_at is not None else "Unknown",
+            "Value": generated_at.strftime("%Y-%m-%d %H:%M UTC")
+            if generated_at is not None
+            else "Unknown",
         },
         {
             "Metric": "Forecast starts",
-            "Value": forecast_start.strftime("%Y-%m-%d") if forecast_start is not None else "Unknown",
+            "Value": forecast_start.strftime("%Y-%m-%d")
+            if forecast_start is not None
+            else "Unknown",
         },
         {
             "Metric": "Forecast ends",
@@ -251,7 +257,9 @@ preview_columns = [
     ]
     if column in risk.columns
 ]
-preview = risk.sort_values(["date", "risk_score"], ascending=[True, False])[preview_columns].head(20)
+preview = risk.sort_values(["date", "risk_score"], ascending=[True, False])[preview_columns].head(
+    20
+)
 st.dataframe(preview, hide_index=True, use_container_width=True)
 
 with st.expander("Raw health payload"):

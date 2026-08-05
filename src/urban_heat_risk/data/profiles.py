@@ -50,9 +50,7 @@ def build_district_profiles(
         raise ValueError("population_age_65_plus cannot exceed population")
 
     frame["population_density_per_km2"] = frame["population"] / frame["area_km2"]
-    frame["share_age_65_plus_pct"] = (
-        100 * frame["population_age_65_plus"] / frame["population"]
-    )
+    frame["share_age_65_plus_pct"] = 100 * frame["population_age_65_plus"] / frame["population"]
     frame["source_quality"] = source_quality
     result = frame[PROFILE_COLUMNS].sort_values("district").reset_index(drop=True)
     errors = validate_district_profiles(result)

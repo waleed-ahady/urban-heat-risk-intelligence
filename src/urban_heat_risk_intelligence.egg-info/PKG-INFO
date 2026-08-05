@@ -23,10 +23,6 @@ Dynamic: license-file
 
 # Urban Heat Risk Intelligence
 
-[![CI](https://github.com/YOUR_USERNAME/urban-heat-risk-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/urban-heat-risk-intelligence/actions/workflows/ci.yml)
-[![Streamlit](https://img.shields.io/badge/Streamlit-deploy-red)](https://share.streamlit.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
 An end-to-end urban heat decision-support product for Berlin's 12 districts. It retrieves weather data, validates and aggregates it, derives local-climate features, compares two anomaly-detection models, and combines forecast hazard with population exposure and district vulnerability to produce an explainable 0–100 risk score in Streamlit.
 
 > **Important:** This is a portfolio and research prototype. It is not an official warning system, a medical device, or a substitute for government emergency guidance.

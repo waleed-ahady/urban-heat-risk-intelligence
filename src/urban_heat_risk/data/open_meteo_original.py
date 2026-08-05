@@ -112,9 +112,7 @@ def validate_hourly_weather(frame: pd.DataFrame) -> dict[str, object]:
         missing_fraction = float(frame[list(required)].isna().mean().mean())
         range_violations = {
             "temperature_2m": int((~frame["temperature_2m"].between(-60, 60)).sum()),
-            "relative_humidity_2m": int(
-                (~frame["relative_humidity_2m"].between(0, 100)).sum()
-            ),
+            "relative_humidity_2m": int((~frame["relative_humidity_2m"].between(0, 100)).sum()),
             "wind_speed_10m": int((frame["wind_speed_10m"] < 0).sum()),
             "precipitation": int((frame["precipitation"] < 0).sum()),
         }

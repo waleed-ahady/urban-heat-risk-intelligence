@@ -72,7 +72,9 @@ def run_training(
     evaluation_features["proxy_extreme"] = create_proxy_extreme_label(evaluation_features)
 
     # Bound robust covariance fitting cost while retaining all seasons and districts.
-    fit_frame = _stratified_sample(training_features, max_rows=15000, random_state=settings.random_state)
+    fit_frame = _stratified_sample(
+        training_features, max_rows=15000, random_state=settings.random_state
+    )
     evaluation_bundle = fit_model_bundle(
         fit_frame,
         contamination=settings.contamination,
@@ -136,9 +138,7 @@ def _stratified_sample(frame: pd.DataFrame, max_rows: int, random_state: int) ->
     sampled_indices: list[int] = []
     for _, group in frame.groupby(["district", "month"], sort=False):
         group_size = max(1, min(len(group), int(round(len(group) * fraction))))
-        sampled_indices.extend(
-            group.sample(n=group_size, random_state=random_state).index.tolist()
-        )
+        sampled_indices.extend(group.sample(n=group_size, random_state=random_state).index.tolist())
     sampled = frame.loc[sampled_indices]
     if len(sampled) > max_rows:
         sampled = sampled.sample(n=max_rows, random_state=random_state)

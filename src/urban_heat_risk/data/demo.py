@@ -32,10 +32,12 @@ def generate_demo_hourly(
         years = sorted(set(timestamps.year))
         for year in years:
             year_mask = timestamps.year == year
-            summer_positions = np.flatnonzero(year_mask & (timestamps.month >= 6) & (timestamps.month <= 8))
+            summer_positions = np.flatnonzero(
+                year_mask & (timestamps.month >= 6) & (timestamps.month <= 8)
+            )
             if len(summer_positions) == 0:
                 continue
-            start = int(rng.choice(summer_positions[:-24 * 7]))
+            start = int(rng.choice(summer_positions[: -24 * 7]))
             duration_hours = int(rng.integers(72, 144))
             end = min(start + duration_hours, len(temperature))
             wave = np.sin(np.linspace(0, np.pi, end - start)) * rng.uniform(5.0, 9.0)
