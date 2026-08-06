@@ -2,7 +2,8 @@ name: Refresh heat-risk forecast
 
 on:
   schedule:
-    - cron: "0 8 * * *" 
+    # 10:00 AM Berlin summer time
+    - cron: "0 8 * * *"
   workflow_dispatch:
 
 permissions:
