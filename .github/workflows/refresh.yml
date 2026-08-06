@@ -2,11 +2,7 @@ name: Refresh heat-risk forecast
 
 on:
   schedule:
-    # Every day at 05:15 UTC
-    # 07:15 Berlin summer time / 06:15 Berlin winter time
-    - cron: "15 5 * * *"
-
-  # Allows manual execution from the GitHub Actions page
+    - cron: "0 8 * * *" 
   workflow_dispatch:
 
 permissions:
@@ -18,10 +14,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -31,11 +27,16 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e .
 
-      - name: Refresh live forecast
+      - name: Verify required files
         run: |
-          python scripts/refresh_forecast.py --mode live
+          test -f artifacts/anomaly_models.joblib
+          test -f data/reference/district_profiles.csv
+          test -f configs/settings.json
 
-      - name: Commit updated forecast files
+      - name: Refresh forecast
+        run: python scripts/refresh_forecast.py --mode live
+
+      - name: Commit refreshed outputs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -46,8 +47,9 @@ jobs:
             data/processed/data_health.json
 
           if git diff --cached --quiet; then
-            echo "No forecast changes to commit."
+            echo "No changes to commit."
           else
             git commit -m "chore: refresh daily heat-risk forecast"
+            git pull --rebase
             git push
           fi
