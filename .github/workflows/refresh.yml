@@ -2,7 +2,6 @@ name: Refresh heat-risk forecast
 
 on:
   schedule:
-    # 10:00 AM Berlin summer time
     - cron: "20 8 * * *"
   workflow_dispatch:
 
@@ -24,18 +23,33 @@ jobs:
           cache: pip
 
       - name: Install project
+        shell: bash
         run: |
+          set -euxo pipefail
           python -m pip install --upgrade pip
           python -m pip install -e .
-
-      - name: Verify required files
-        run: |
-          test -f artifacts/anomaly_models.joblib
-          test -f data/reference/district_profiles.csv
-          test -f configs/settings.json
+          python -m pip check
 
       - name: Refresh forecast
-        run: python scripts/refresh_forecast.py --mode live
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          python --version
+          pwd
+
+          ls -lh artifacts/anomaly_models.joblib
+          ls -lh data/reference/district_profiles.csv
+          ls -lh configs/settings.json
+
+          python -u scripts/refresh_forecast.py --mode live
+
+      - name: Show generated files
+        if: always()
+        shell: bash
+        run: |
+          find data/processed -maxdepth 1 -type f -print || true
+          ls -lh data/processed || true
 
       - name: Commit refreshed outputs
         run: |
