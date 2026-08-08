@@ -1,8 +1,8 @@
 {
   "mode": "live",
-  "generated_at_utc": "2026-08-07T09:58:35.514139+00:00",
-  "forecast_start": "2026-08-07 00:00:00",
-  "forecast_end": "2026-08-13 00:00:00",
+  "generated_at_utc": "2026-08-08T09:34:39.258871+00:00",
+  "forecast_start": "2026-08-08 00:00:00",
+  "forecast_end": "2026-08-14 00:00:00",
   "risk_rows": 84,
   "districts": 12,
   "hourly": {
