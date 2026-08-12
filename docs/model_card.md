@@ -9,13 +9,6 @@ The project contains two unsupervised anomaly-detection models:
 
 They identify forecast daily heat conditions that are unusual relative to historical district/month climate patterns.
 
-## Intended use
-
-- Portfolio demonstration of production-oriented data science
-- Relative prioritization of districts for further review
-- Exploration of heat hazard and vulnerability drivers
-- Internal planning scenarios
-
 ## Out-of-scope use
 
 - Official emergency warnings
