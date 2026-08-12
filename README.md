@@ -455,37 +455,3 @@ make lint
 ```
 
 Equivalent Python commands can also be run directly from the `scripts/` directory.
-
-## Limitations
-
-This project is designed as a heat-risk intelligence and decision-support system, not as a clinical or epidemiological prediction model.
-
-Several limitations are important:
-
-* Weather forecasts contain uncertainty and can change between refreshes.
-* District-level indicators simplify substantial variation within individual districts.
-* Representative district coordinates do not capture every local microclimate.
-* Green space and impervious surface are proxies for urban environmental conditions.
-* The anomaly models detect unusual weather rather than health outcomes.
-* The risk weights are transparent analytical assumptions rather than coefficients estimated from observed health impacts.
-
-These limitations are intentional and documented so that the outputs are interpreted appropriately.
-
-## Future development
-
-Possible extensions include:
-
-* finer spatial analysis using Berlin district or LOR polygons
-* population-weighted or gridded weather inputs
-* additional urban-form and satellite indicators
-* wet-bulb temperature or WBGT-style heat-stress features
-* forecast uncertainty from ensemble weather models
-* archived forecast backtesting
-* longer-term model and data drift monitoring
-* integration of emergency calls, hospital activity, energy demand, or other operational outcomes where suitable data is available
-
-## Purpose
-
-Urban Heat Risk Intelligence demonstrates how weather data, unsupervised machine learning, spatial vulnerability indicators, automated pipelines, and an interactive application can be combined into a practical end-to-end analytics product.
-
-The emphasis is not only on building a model, but on building the surrounding system needed to make its outputs understandable, reproducible, testable, and usable.
