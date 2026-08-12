@@ -14,7 +14,7 @@ The result is presented through an interactive Streamlit dashboard designed for 
 
 ### City overview
 
-![Urban Heat Risk Intelligence home page](home_page.png)
+![Urban Heat Risk Intelligence home page](docs/dashboard/home_page.png)
 
 The main dashboard provides a city-wide view of current and upcoming heat risk, including district rankings, key indicators, a Berlin map, and the seven-day outlook.
 
