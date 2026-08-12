@@ -20,19 +20,19 @@ The main dashboard provides a city-wide view of current and upcoming heat risk, 
 
 ### District forecast
 
-![District forecast page](district_forecast.png)
+![District forecast page](docs/dashboard/district_forecast.png)
 
 Each district can be explored individually to understand how risk develops over the forecast period and which factors are contributing most strongly.
 
 ### Scenario simulation
 
-![Scenario simulator](scenario_sim.png)
+![Scenario simulator](docs/dashboard/scenario_sim.png)
 
 The scenario simulator allows users to explore how changes in weather conditions or vulnerability factors could affect the resulting heat-risk score.
 
 ### Anomaly analysis
 
-![Anomaly analysis page](anomaly_page.png)
+![Anomaly analysis page](docs/dashboard/anomaly_page.png)
 
 The anomaly page compares the two detection models, their combined score, and the level of disagreement between them.
 
