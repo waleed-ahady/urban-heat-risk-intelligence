@@ -23,212 +23,458 @@ Dynamic: license-file
 
 # Urban Heat Risk Intelligence
 
-An end-to-end urban heat decision-support product for Berlin's 12 districts. It retrieves weather data, validates and aggregates it, derives local-climate features, compares two anomaly-detection models, and combines forecast hazard with population exposure and district vulnerability to produce an explainable 0–100 risk score in Streamlit.
+Urban Heat Risk Intelligence is a data-driven decision-support platform for monitoring short-term heat risk across Berlin’s 12 districts.
 
-## What the product does
+The project combines live weather forecasts, historical climate patterns, and district-level demographic and environmental indicators to answer a practical question:
 
-```text
-Open-Meteo historical + forecast weather
-                  │
-                  ▼
-        Validation and daily features
-                  │
-                  ▼
-       District/month climatology
-                  │
-          ┌───────┴────────┐
-          ▼                ▼
-  Isolation Forest   Robust Covariance
-          └───────┬────────┘
-                  ▼
-       Ensemble anomaly percentile
-                  │
-                  ▼
- Hazard × exposure × vulnerability engine
-                  │
-                  ▼
-       Streamlit decision dashboard
-```
+**Where is heat risk likely to be highest over the next seven days, and why?**
 
-The weather provider supplies the forecast. This repository adds the decision layer:
+Rather than forecasting temperature itself, the system uses Open-Meteo weather forecasts and adds an analytical layer on top. It evaluates how unusual upcoming conditions are compared with the historical climate of each district, then combines weather severity with population exposure and local vulnerability to produce an explainable heat-risk score from **0 to 100**.
 
-- How unusual are the forecast conditions for this district and season?
-- Which districts should be prioritized first?
-- Is risk driven by heat severity, warm nights, event duration, population exposure, or local vulnerability?
-- How much do the two anomaly models agree?
-- What changes under a planning scenario?
+The result is presented through an interactive Streamlit dashboard designed for exploration, comparison, and operational awareness.
 
-## Modeling strategy
+## Dashboard
 
-### Model 1: Isolation Forest
+### City overview
 
-Captures globally unusual combinations of apparent temperature, warm nights, humidity, radiation, heat hours, and heatwave duration.
+![Urban Heat Risk Intelligence home page](docs/dashboard/home_page.png)
 
-### Model 2: Robust Covariance
+The main dashboard provides a city-wide view of current and upcoming heat risk, including district rankings, key indicators, a Berlin map, and the seven-day outlook.
 
-Uses a robust covariance envelope to identify multivariate conditions with unusually large robust distance.
+### District forecast
 
-### Ensemble
+![District forecast page](docs/dashboard/district_forecast.png)
 
-Each raw model score is converted to an empirical training percentile. The final anomaly score is:
+Each district can be explored individually to understand how risk develops over the forecast period and which factors are contributing most strongly.
+
+### Scenario simulation
+
+![Scenario simulator](docs/dashboard/scenario_sim.png)
+
+The scenario simulator allows users to explore how changes in weather conditions or vulnerability factors could affect the resulting heat-risk score.
+
+### Anomaly analysis
+
+![Anomaly analysis page](docs/dashboard/anomaly_page.png)
+
+The anomaly page compares the two detection models, their combined score, and the level of disagreement between them.
+
+## How it works
+
+The system follows two connected workflows: model training and daily forecast scoring.
 
 ```text
-anomaly_score = 100 × (0.70 × isolation_forest_percentile
-                     + 0.30 × robust_covariance_percentile)
+Historical weather
+        │
+        ▼
+Daily weather features
+        │
+        ▼
+District and monthly climatology
+        │
+        ▼
+Anomaly-detection models
+        │
+        ▼
+Saved models and climate baselines
+
+
+Current 7-day weather forecast
+        │
+        ▼
+Same daily feature pipeline
+        │
+        ▼
+Anomaly scoring
+        │
+        ▼
+Weather hazard
+        +
+Population exposure
+        +
+District vulnerability
+        │
+        ▼
+0–100 heat-risk score
+        │
+        ▼
+Streamlit dashboard
 ```
 
-The risk engine is transparent rather than learned from unavailable outcomes:
+Open-Meteo provides the historical and forecast weather data. The models in this repository do **not** attempt to predict future temperature.
+
+Instead, they estimate how unusual forecast conditions are relative to historical conditions for the same district and time of year.
+
+This distinction is important: the project is a **risk-intelligence layer built on top of a weather forecast**, not a weather-forecasting model.
+
+## Data
+
+The platform combines three types of information.
+
+### Weather
+
+Historical and forecast weather is retrieved from Open-Meteo and includes variables such as:
+
+* temperature
+* apparent temperature
+* relative humidity
+* precipitation
+* wind speed
+* solar radiation
+
+Hourly observations are transformed into daily indicators that better represent heat stress, including:
+
+* maximum temperature
+* maximum apparent temperature
+* minimum nighttime temperature
+* mean humidity
+* mean wind speed
+* maximum solar radiation
+* total precipitation
+* hours above 30°C
+* hours with apparent temperature above 35°C
+* consecutive hot days
+
+The system also derives climate anomalies by comparing conditions with historical values for the same Berlin district and calendar month.
+
+### Demographics
+
+District-level demographic information includes:
+
+* population
+* district area
+* population density
+* population aged 65 and above
+* share of residents aged 65 and above
+
+Population density is used as an exposure indicator, while the share of older residents contributes to the vulnerability assessment.
+
+### Environment
+
+Environmental indicators include:
+
+* green-space percentage
+* impervious-surface percentage
+
+These variables provide simple proxies for local cooling capacity and urban heat retention.
+
+District reference data is consolidated into:
 
 ```text
-risk = 0.55 × hazard + 0.20 × exposure + 0.25 × vulnerability
+data/reference/district_profiles.csv
 ```
 
-See [`docs/model_card.md`](docs/model_card.md) for assumptions, evaluation, and limitations.
+## Modeling approach
 
-## Repository features
+The project uses two unsupervised anomaly-detection models.
 
-- Live and deterministic offline data modes
-- Open-Meteo historical and forecast clients
-- Schema, range, duplicate, missingness, and coverage checks
-- Hourly-to-daily feature pipeline
-- District/month robust climatology using median and MAD
-- Two unsupervised anomaly models and percentile ensemble
-- Final-year time holdout evaluation
-- Weak-label benchmark based on historical 98th-percentile extremes
-- Explainable hazard–exposure–vulnerability risk engine
-- Multi-page Streamlit dashboard
-- Scenario simulator
-- Model disagreement and data-health pages
-- pytest unit tests
-- Ruff lint configuration and typed module interfaces
-- GitHub Actions CI and scheduled refresh
-- Docker support
-- Model card, architecture, data dictionary, and operating guide
+### Isolation Forest
 
-## Quick start: fully offline demo
+Isolation Forest identifies unusual combinations of weather conditions by measuring how easily observations can be isolated from typical historical patterns.
 
-The demo is deterministic and does not require an API connection.
+It can capture unusual combinations involving factors such as apparent temperature, warm nights, humidity, solar radiation, extreme heat hours, and heatwave duration.
+
+### Robust Covariance
+
+Robust Covariance, implemented using `EllipticEnvelope`, estimates the multivariate structure of typical climate conditions while reducing the influence of extreme observations.
+
+It provides a complementary way of identifying observations that lie unusually far from the historical climate distribution.
+
+### Ensemble anomaly score
+
+The raw outputs of both models are converted into historical percentiles so that they can be compared on the same scale.
+
+The final anomaly score combines them as:
+
+```text
+70% Isolation Forest
+30% Robust Covariance
+```
+
+This produces an anomaly score between 0 and 100, where higher values indicate conditions that are more unusual relative to the historical training distribution.
+
+The project also calculates **model disagreement**, which shows how differently the two models assess the same forecast conditions.
+
+## Heat-risk scoring
+
+An unusual weather pattern is not automatically equivalent to high public heat risk.
+
+The project therefore combines three dimensions:
+
+### Hazard
+
+Represents the severity of the weather itself.
+
+It considers factors such as:
+
+* apparent temperature
+* warm nighttime temperatures
+* duration of hot conditions
+* number of extreme heat hours
+* climate anomaly score
+
+### Exposure
+
+Represents how many people may be affected.
+
+Population density is currently used as the main exposure proxy.
+
+### Vulnerability
+
+Represents characteristics that may increase sensitivity to heat or reduce local adaptive capacity.
+
+It includes:
+
+* share of residents aged 65+
+* impervious surface
+* green-space availability
+
+The final score combines the three components:
+
+```text
+55% hazard
+20% exposure
+25% vulnerability
+```
+
+The resulting value is normalized to a **0–100 heat-risk score** and translated into an operational category:
+
+| Score  | Risk level |
+| ------ | ---------- |
+| 0–24   | Low        |
+| 25–44  | Moderate   |
+| 45–64  | High       |
+| 65–81  | Very High  |
+| 82–100 | Extreme    |
+
+The scoring system is intentionally transparent. Its purpose is to make it possible to understand why one district receives a higher risk score than another.
+
+## Model evaluation
+
+The anomaly models are evaluated using a chronological holdout rather than a random train/test split.
+
+Earlier historical observations are used for training, while the final year is kept separate for evaluation. This better reflects the real deployment setting, where models are trained on past observations and applied to future conditions.
+
+Because the project does not include hospital admissions, mortality, ambulance calls, or other health-outcome labels, model evaluation uses a climate-extreme proxy based on historical high-temperature and warm-night thresholds.
+
+The ensemble currently achieves strong performance on this benchmark, with detailed results stored in:
+
+```text
+artifacts/model_metrics.json
+```
+
+The evaluation should therefore be interpreted as:
+
+**How well does the system identify historically extreme weather conditions?**
+
+It should not be interpreted as:
+
+**How accurately does the system predict illness, mortality, or emergency-service demand?**
+
+More detail on the assumptions and evaluation methodology is available in:
+
+```text
+docs/model_card.md
+```
+
+## Application
+
+The Streamlit application contains several views designed for different levels of analysis.
+
+**Executive overview** provides the city-wide situation, district ranking, headline indicators, Berlin map, and seven-day outlook.
+
+**District Forecast** provides a detailed view of an individual district, including its forecast trajectory and risk decomposition.
+
+**Scenario Simulator** allows selected inputs to be adjusted to explore how different conditions would affect heat risk.
+
+**Anomaly Lab** compares Isolation Forest, Robust Covariance, the ensemble anomaly score, and model disagreement.
+
+**Model Quality** presents evaluation results and explains the limitations of the proxy-label approach.
+
+**Data Health** monitors data freshness, district coverage, validation results, and pipeline status.
+
+## Project structure
+
+```text
+urban-heat-risk-intelligence/
+│
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       └── refresh.yml
+│
+├── app/
+│   ├── Home.py
+│   └── pages/
+│
+├── artifacts/
+│   ├── anomaly_models.joblib
+│   └── model_metrics.json
+│
+├── configs/
+│   └── settings.json
+│
+├── data/
+│   ├── processed/
+│   ├── reference/
+│   └── raw/
+│
+├── docs/
+│
+├── scripts/
+│   ├── build_district_profiles.py
+│   ├── validate_district_profiles.py
+│   ├── train_models.py
+│   └── refresh_forecast.py
+│
+├── src/
+│   └── urban_heat_risk/
+│       ├── data/
+│       ├── features/
+│       ├── models/
+│       ├── pipelines/
+│       └── risk/
+│
+├── tests/
+├── pyproject.toml
+├── requirements.txt
+└── README.md
+```
+
+The main responsibilities are separated intentionally:
+
+```text
+data/        → data access, validation, and reference datasets
+features/    → hourly-to-daily transformation and climatology
+models/      → anomaly detection and model evaluation
+risk/        → hazard, exposure, vulnerability, and final score
+pipelines/   → orchestration of training and forecast refresh
+app/         → Streamlit user interface
+tests/       → automated tests
+```
+
+## Running the project locally
+
+Create and activate a virtual environment:
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate              # Windows: .venv\Scripts\activate
-python -m pip install -e ".[dev]"
-make demo
-make app
+source .venv/bin/activate
 ```
 
-Open the local URL printed by Streamlit.
+On Windows:
 
-`make demo` generates synthetic historical and forecast weather, trains both models, evaluates them, and creates dashboard artifacts. The demo profile is visibly labeled and must not be interpreted as official district evidence.
+```bash
+.venv\Scripts\activate
+```
 
-## Live weather mode
+Install the project and development dependencies:
 
-Train on real Open-Meteo historical weather:
+```bash
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+```
+
+### Train with live historical weather
 
 ```bash
 python scripts/train_models.py --mode live
 ```
 
-Refresh current and upcoming risk outputs:
+This retrieves historical weather, creates daily features and climatology, trains the anomaly-detection models, evaluates them, and stores the resulting artifacts.
+
+### Refresh the latest forecast
 
 ```bash
 python scripts/refresh_forecast.py --mode live
-streamlit run app/Home.py
 ```
 
-Open-Meteo provides historical reanalysis and forecast APIs without requiring an API key for non-commercial use. Review its current terms and attribution requirements before deployment:
+This retrieves the latest Open-Meteo forecast, creates forecast features, scores anomalies, calculates district heat risk, and updates the processed dashboard outputs.
 
-- Historical API: https://open-meteo.com/en/docs/historical-weather-api
-- Forecast API: https://open-meteo.com/en/docs
-- About and licensing: https://open-meteo.com/en/about
-
-## District vulnerability data
-
-- Population and age: Amt für Statistik Berlin-Brandenburg / Berlin Open Data
-- Population density, green volume, land use, and impervious surface: Berlin Environmental Atlas WFS or downloads
-
-Relevant catalogues:
-
-- https://daten.berlin.de/datensaetze
-- https://www.statistik-berlin-brandenburg.de/
-- https://www.berlin.de/umweltatlas/
-
-The intended production contract is:
-
-| Field | Meaning |
-|---|---|
-| `population_density_per_km2` | Exposure proxy |
-| `share_age_65_plus_pct` | Heat-sensitivity proxy |
-| `green_space_pct` | Cooling and adaptive-capacity proxy |
-| `impervious_surface_pct` | Urban heat-retention proxy |
-| `source_quality` | Provenance and release status |
-
-Use the canonical builder after downloading and mapping official extracts to the provided templates:
+### Launch the application
 
 ```bash
-python scripts/build_district_profiles.py \
-  --demographics data/raw/demographics.csv \
-  --environment data/raw/environment.csv \
-  --coordinates data/raw/coordinates.csv \
-  --source-quality "official_release_YYYY-MM-DD"
-python scripts/validate_district_profiles.py
+python -m streamlit run app/Home.py
 ```
 
-Input templates are under `data/reference/templates/`. The builder calculates population density and the share aged 65+, performs one-to-one district joins, validates ranges, and writes the canonical profile.
+## Offline demo
 
-## Dashboard pages
+A deterministic demo mode is also included so that the complete pipeline can be explored without relying on an external weather API.
 
-1. **Executive overview** — map, district ranking, KPIs, seven-day outlook.
-2. **District Forecast** — trajectory, risk decomposition, scenario simulator, detailed output.
-3. **Anomaly Lab** — Isolation Forest versus robust covariance, ensemble score, disagreement analysis.
-4. **Model Quality** — time-holdout metrics and proxy-label limitations.
-5. **Data Health** — freshness, validation results, provenance status, output sample.
+```bash
+make demo
+make app
+```
 
-## Project layout
+The demo generates synthetic historical and forecast data, trains the models, creates risk outputs, and launches the same dashboard structure.
+
+Synthetic demo results are clearly separated from official or live district evidence.
+
+## Data sources
+
+Weather data is provided by [Open-Meteo](https://open-meteo.com/).
+
+Berlin demographic and environmental reference data is based on publicly available information from sources including:
+
+* [Amt für Statistik Berlin-Brandenburg](https://www.statistik-berlin-brandenburg.de/)
+* [Berlin Open Data](https://daten.berlin.de/datensaetze)
+* [Berlin Environmental Atlas](https://www.berlin.de/umweltatlas/)
+
+Open-Meteo documentation:
+
+* [Historical Weather API](https://open-meteo.com/en/docs/historical-weather-api)
+* [Forecast API](https://open-meteo.com/en/docs)
+* [About and licensing](https://open-meteo.com/en/about)
+
+## Data quality and validation
+
+The project performs validation throughout the pipeline rather than assuming that incoming data is correct.
+
+Checks include:
+
+* required columns
+* missing values
+* duplicate observations
+* expected district coverage
+* weather-variable ranges
+* date coverage
+* forecast freshness
+
+Pipeline health information is written to:
 
 ```text
-urban-heat-risk-intelligence/
-├── .github/workflows/          # CI and scheduled forecast refresh
-├── app/                        # Streamlit application
-├── artifacts/                  # Serialized models and metrics
-├── configs/                    # Runtime settings
-├── data/
-│   ├── processed/              # Generated model and dashboard tables
-│   └── reference/              # District profiles and provenance notes
-├── docs/                       # Architecture, model card, data dictionary
-├── scripts/                    # CLI entry points, including profile building
-├── src/urban_heat_risk/
-│   ├── data/                   # API clients, demo generation, validation
-│   ├── features/               # Aggregation and climatology
-│   ├── models/                 # Two anomaly detectors and evaluation
-│   ├── pipelines/              # Train and refresh orchestration
-│   └── risk/                   # Explainable risk engine
-└── tests/                      # Unit tests
+data/processed/data_health.json
 ```
 
-## Commands
+and surfaced directly in the Streamlit application.
+
+## Automation
+
+Two GitHub Actions workflows support the project.
+
+`ci.yml` runs automated quality checks such as:
+
+```text
+Ruff linting
+Ruff formatting
+pytest
+dependency validation
+```
+
+`refresh.yml` performs the scheduled forecast refresh.
+
+The refresh workflow retrieves the latest forecast, recalculates district-level risk, and commits the refreshed outputs back to the repository so that the deployed Streamlit application can display the latest available results.
+
+## Main commands
 
 ```bash
-make install   # install package and development dependencies
-make demo      # generate offline data, train models, refresh outputs
-make train     # train in demo mode
-make refresh   # refresh with live Open-Meteo data
-make app       # run Streamlit
-make test      # run pytest
-make lint      # Ruff
+make install
+make demo
+make train
+make refresh
+make app
+make test
+make lint
 ```
 
-## Evaluation
-
-The repository uses a final-year time holdout. Because no hospital or emergency-call labels are included, it evaluates retrieval of district/month extreme days, defined from training-period 98th-percentile apparent-temperature or warm-night thresholds.
-
-This benchmark is useful for engineering validation, but it does **not** establish that the system predicts illness, mortality, or emergency demand. The exact generated metrics are stored in `artifacts/model_metrics.json` and displayed in the dashboard.
-
-## Roadmap
-
-- Aggregate official Berlin LOR or district vulnerability datasets automatically.
-- Add district polygons rather than centroid markers.
-- Backtest archived issued forecasts against realized weather.
-- Add uncertainty from ensemble weather forecasts.
-- Integrate operational labels such as emergency calls or grid load where permitted.
-- Add model and data drift history rather than only latest-run health checks.
+Equivalent Python commands can also be run directly from the `scripts/` directory.
