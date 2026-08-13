@@ -15,6 +15,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -30,18 +33,21 @@ jobs:
           python -m pip install -e .
           python -m pip check
 
+      - name: Verify required files
+        shell: bash
+        run: |
+          set -euxo pipefail
+          ls -lh artifacts/anomaly_models.joblib
+          ls -lh data/reference/district_profiles.csv
+          ls -lh data/processed/historical_daily.csv
+          ls -lh configs/settings.json
+
       - name: Refresh forecast
         shell: bash
         run: |
           set -euxo pipefail
-
           python --version
           pwd
-
-          ls -lh artifacts/anomaly_models.joblib
-          ls -lh data/reference/district_profiles.csv
-          ls -lh configs/settings.json
-
           python -u scripts/refresh_forecast.py --mode live
 
       - name: Show generated files
@@ -52,7 +58,10 @@ jobs:
           ls -lh data/processed || true
 
       - name: Commit refreshed outputs
+        shell: bash
         run: |
+          set -euxo pipefail
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
@@ -65,6 +74,6 @@ jobs:
             echo "No changes to commit."
           else
             git commit -m "chore: refresh daily heat-risk forecast"
-            git pull --rebase
-            git push
+            git pull --rebase origin main
+            git push origin HEAD:main
           fi
