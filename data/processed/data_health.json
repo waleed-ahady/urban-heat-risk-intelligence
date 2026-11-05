@@ -1,8 +1,8 @@
 {
   "mode": "live",
-  "generated_at_utc": "2026-11-04T12:42:07.836888+00:00",
-  "forecast_start": "2026-11-04 00:00:00",
-  "forecast_end": "2026-11-10 00:00:00",
+  "generated_at_utc": "2026-11-05T12:52:26.426728+00:00",
+  "forecast_start": "2026-11-05 00:00:00",
+  "forecast_end": "2026-11-11 00:00:00",
   "risk_rows": 84,
   "districts": 12,
   "hourly": {
@@ -30,5 +30,5 @@
   "profile_source_quality": {
     "official_sources_2026-08": 12
   },
-  "max_model_disagreement": 27.483333333333338
+  "max_model_disagreement": 22.433333333333326
 }
